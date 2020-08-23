@@ -112,3 +112,39 @@ class Account:
                     "order_state": open_order["order_state"],
                 }
             ]
+
+
+class Book:
+    def __init__(self, depth):
+        self.depth = depth
+        self.best_bid_price = 0.0,
+        self.best_bid_amount = 0,
+        self.best_ask_price = 0.0,
+        self.best_ask_amount = 0,
+        self.bids = [[0.0, 0]]*self.depth
+        self.asks = [[0.0, 0]]*self.depth
+
+    async def update(self, websocket, config):
+
+        # update the order book
+
+        msg_book = \
+            {
+                "jsonrpc": "2.0",
+                "id": 8772,
+                "method": "public/get_order_book",
+                "params": {
+                    "instrument_name": config['instrument_name'],
+                    "depth": self.depth
+                }
+            }
+        await websocket.send(json.dumps(msg_book))
+        response = await websocket.recv()
+        res = json.loads(response)
+        self.best_bid_price = res['result']["best_bid_price"]
+        self.best_bid_amount = res['result']["best_bid_amount"]
+        self.best_ask_price = res['result']["best_ask_price"]
+        self.best_ask_amount = res['result']["best_ask_amount"]
+        self.bids = res['result']["bids"]
+        self.asks = res['result']["asks"]
+
